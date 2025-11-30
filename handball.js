@@ -4,8 +4,8 @@ let plays = [];
 let timer = 0;
 let isRunning = false;
 let timerInterval = null;
-let teamAName = 'Rakusei';
-let teamBName = 'Ryoyo';
+let teamAName = 'A';
+let teamBName = 'B';
 let currentTeam = 'A';
 let currentHalf = '前半';
 let currentPosition = '';
@@ -1083,4 +1083,5 @@ window.onload = function() {
     updateTeamNames();
     selectTeam('A');
     updateTimerDisplay();
+
 };
