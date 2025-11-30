@@ -264,13 +264,13 @@
         <h1>🤾 ハンドボール試合分析ツール</h1>
         
         <div class="team-setup">
-            <input type="text" id="teamAName" placeholder="チームA名（例：Rakusei）" value="Rakusei">
-            <input type="text" id="teamBName" placeholder="チームB名（例：Ryoyo）" value="Ryoyo">
+            <input type="text" id="teamAName" placeholder="チームA名（例：Rakusei）" value="">
+            <input type="text" id="teamBName" placeholder="チームB名（例：Higashiyma）" value="">
             <button class="btn-primary" onclick="updateTeamNames()">チーム名更新</button>
         </div>
 
         <div class="data-management">
-            <input type="text" id="gameName" placeholder="試合名（例：練習試合_vs◯◯）" value="">
+            <input type="text" id="gameName" placeholder="試合名（例：PrivateSchool JuniorHigh 2019 Rakusei vs Higashiyama ）" value="">
             <button class="btn-success" onclick="exportData()">💾 データ保存</button>
             <input type="file" id="fileInput" accept=".json" onchange="importData(event)">
             <button class="btn-info" onclick="document.getElementById('fileInput').click()">📂 データ読込</button>
@@ -537,4 +537,5 @@
 
     <script src="handball.js"></script>
 </body>
+
 </html>
