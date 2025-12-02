@@ -20,10 +20,10 @@
         button { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
         button:hover { opacity: 0.8; }
         button:active { transform: scale(0.95); }
-        .btn-primary { background: #004d25; color: white; }
+        .btn-primary { background: #2196F3; color: white; }
         .btn-success { background: #4CAF50; color: white; }
         .btn-danger { background: #f44336; color: white; }
-        .btn-warning { background: #FFEA00; color: white; }
+        .btn-warning { background: #ff9800; color: white; }
         .btn-info { background: #00bcd4; color: white; }
         .input-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
         .input-group { padding: 15px; background: #f9f9f9; border-radius: 5px; }
@@ -303,13 +303,13 @@
         <h1>🤾 ハンドボール試合分析ツール</h1>
         
         <div class="team-setup">
-            <input type="text" id="teamAName" placeholder="チームA名（例：Rakusei）" value="">
-            <input type="text" id="teamBName" placeholder="チームB名（例：Higashiyama）" value="">
+            <input type="text" id="teamAName" placeholder="チームA名(例:Rakusei)" value="">
+            <input type="text" id="teamBName" placeholder="チームB名(例:Higashiyama)" value="">
             <button class="btn-primary" onclick="updateTeamNames()">チーム名更新</button>
         </div>
 
         <div class="data-management">
-            <input type="text" id="gameName" placeholder="試合名（例：2019PrivateSchoolCup JuniorHigh Rakusei-Higashiyama）" value="">
+            <input type="text" id="gameName" placeholder="試合名(例:2019PrivateSchoolCup JuniorHigh Rakusei-Higashiyama)" value="">
             <button class="btn-success" onclick="exportData()">💾 データ保存</button>
             <input type="file" id="fileInput" accept=".json" onchange="importData(event)">
             <button class="btn-info" onclick="document.getElementById('fileInput').click()">📂 データ読込</button>
@@ -454,15 +454,15 @@
         <div style="padding: 15px; background: #f9f9f9; border-radius: 5px; margin-bottom: 20px;">
             <h3>結果選択:</h3>
             <div class="result-buttons">
-                <button class="btn-success" id="result1" onclick="selectResult('1')">得点 (1)</button>
-                <button class="btn-danger" id="result0" onclick="selectResult('0')">失敗 (0)</button>
-                <button class="btn-warning" id="resultTO" onclick="selectResult('TurnOver')">TurnOver</button>
-                <button class="btn-warning" id="resultWarn" onclick="selectResult('警告')">警告</button>
-                <button class="btn-danger" id="resultOut" onclick="selectResult('退場')">退場</button>
-                <button class="btn-danger" id="resultBan" onclick="selectResult('追放')">追放</button>
-                <button class="btn-primary" id="resultTimeout" onclick="selectResult('TimeOut')">TimeOut</button>
+                <button class="btn-success" id="result1" onclick="selectResult('1')" style="background: #9CCC65;">得点 (1)</button>
+                <button class="btn-danger" id="result0" onclick="selectResult('0')" style="background: #757575;">失敗 (0)</button>
+                <button class="btn-warning" id="resultTO" onclick="selectResult('TurnOver')" style="background: #FF9800;">TurnOver</button>
+                <button class="btn-warning" id="resultWarn" onclick="selectResult('警告')" style="background: #FFEB3B; color: #333;">警告</button>
+                <button class="btn-danger" id="resultOut" onclick="selectResult('退場')" style="background: #E91E63;">退場</button>
+                <button class="btn-danger" id="resultBan" onclick="selectResult('追放')" style="background: #C62828;">追放</button>
+                <button class="btn-primary" id="resultTimeout" onclick="selectResult('TimeOut')" style="background: #2E7D32;">TimeOut</button>
             </div>
-            <button class="btn-primary" onclick="addPlay()" style="width: 100%; margin-top: 10px; padding: 12px; font-size: 16px; background: #00BCD4">プレー追加</button>
+            <button class="btn-primary" onclick="addPlay()" style="width: 100%; margin-top: 10px; padding: 12px; font-size: 16px; background: #00BCD4;">プレー追加</button>
         </div>
 
         <div class="tabs">
@@ -498,85 +498,8 @@
 
         <div id="successTab" class="stats-section" style="display: none;">
             <h2>成功率統計</h2>
-            <div class="table-container">
-                <table class="stats-table" id="successStatsTable"></table>
-            </div>
-        </div>
+            <div class="table-
 
-        <div id="midgameTab" class="stats-section" style="display: none;">
-            <h2>試合中統計</h2>
-            <div class="stats-filters">
-                <label>チーム選択:</label>
-                <select id="midgameTeamSelect" onchange="updateStats()">
-                    <option value="A">Aチーム</option>
-                    <option value="B">Bチーム</option>
-                </select>
-            </div>
-            <div class="table-container">
-                <table class="stats-table" id="midgameStatsTable"></table>
-            </div>
-        </div>
-
-        <div id="playerTab" class="stats-section" style="display: none;">
-            <h2>プレーヤー別統計</h2>
-            <div class="stats-filters">
-                <label>チーム選択:</label>
-                <select id="playerTeamSelect" onchange="updateStats()">
-                    <option value="A">Aチーム</option>
-                    <option value="B">Bチーム</option>
-                </select>
-            </div>
-            <div class="table-container" id="playerStatsContainer"></div>
-        </div>
-
-        <div id="shotcourseTab" class="stats-section" style="display: none;">
-            <h2>シュートコース分析</h2>
-            <div class="stats-filters">
-                <label>チーム:</label>
-                <select id="shotTeamSelect" onchange="updateStats()">
-                    <option value="all">全体</option>
-                    <option value="A">Aチーム</option>
-                    <option value="B">Bチーム</option>
-                </select>
-                <label>背番号:</label>
-                <select id="shotPlayerSelect" onchange="updateStats()">
-                    <option value="all">全体</option>
-                </select>
-                <label>位置:</label>
-                <select id="shotPositionSelect" onchange="updateStats()">
-                    <option value="all">全体</option>
-                    <option value="RW">RW</option>
-                    <option value="nRB">nRB</option>
-                    <option value="mRB">mRB</option>
-                    <option value="lRB">lRB</option>
-                    <option value="nCB">nCB</option>
-                    <option value="mCB">mCB</option>
-                    <option value="lCB">lCB</option>
-                    <option value="nLB">nLB</option>
-                    <option value="mLB">mLB</option>
-                    <option value="lLB">lLB</option>
-                    <option value="LW">LW</option>
-                    <option value="RPV">RPV</option>
-                    <option value="CPV">CPV</option>
-                    <option value="LPV">LPV</option>
-                    <option value="7m">7m</option>
-                </select>
-                <label>展開:</label>
-                <select id="shotPhaseSelect" onchange="updateStats()">
-                    <option value="all">全体</option>
-                    <option value="set">セットオフェンス</option>
-                    <option value="fast1">1次速攻</option>
-                    <option value="fast2">2次速攻</option>
-                    <option value="7m">7m</option>
-                </select>
-            </div>
-            <div id="shotCourseAnalysis"></div>
-        </div>
-    </div>
-
-    <script src="handball.js"></script>
-</body>
-</html>
 
 
 
