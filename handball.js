@@ -1,11 +1,11 @@
-// ハンドボール試合分析ツール - JavaScript
+// ハンドボール試合分析ツール - JavaScript (前半)
 
 let plays = [];
 let timer = 0;
 let isRunning = false;
 let timerInterval = null;
-let teamAName = 'A';
-let teamBName = 'B';
+let teamAName = 'Rakusei';
+let teamBName = 'Ryoyo';
 let currentTeam = 'A';
 let currentHalf = '前半';
 let currentPosition = '';
@@ -83,7 +83,6 @@ function selectTeam(team) {
 
 // 展開選択
 function selectPhase(phase) {
-    // 既に選択されている場合は解除
     if (currentPhase === phase) {
         currentPhase = '';
         document.querySelectorAll('.phase-buttons .btn-grid').forEach(btn => {
@@ -100,7 +99,6 @@ function selectPhase(phase) {
 
 // 位置選択
 function selectPosition(pos) {
-    // 既に選択されている場合は解除
     if (currentPosition === pos) {
         currentPosition = '';
         document.querySelectorAll('.position-grid-extended .btn-grid').forEach(btn => {
@@ -117,7 +115,6 @@ function selectPosition(pos) {
 
 // シュートコース選択
 function selectShotCourse(course) {
-    // 既に選択されている場合は解除
     if (currentShotCourse === course) {
         currentShotCourse = '';
         document.querySelectorAll('.shot-course-grid .btn-grid').forEach(btn => {
@@ -135,17 +132,14 @@ function selectShotCourse(course) {
 // 結果選択
 function selectResult(result) {
     currentResult = result;
-    // 全ての結果ボタンから選択状態を削除
     document.querySelectorAll('.result-buttons button').forEach(btn => {
         btn.classList.remove('selected');
     });
-    // クリックされたボタンに選択状態を追加
     event.target.classList.add('selected');
 }
 
 // プレー追加
 function addPlay() {
-    // 編集モードの場合は、編集フォームから時刻を取得
     if (editingIndex !== null) {
         const editMinutes = parseInt(document.getElementById('editMinutes').value) || 0;
         const editSeconds = parseInt(document.getElementById('editSeconds').value) || 0;
@@ -156,7 +150,6 @@ function addPlay() {
             half: editHalf
         };
     } else {
-        // 新規追加の場合は、キャプチャ済み時刻が必要
         if (!capturedTimeValue) {
             alert('「現在時刻を入力」ボタンを押して時刻を確定してください');
             return;
@@ -183,7 +176,6 @@ function addPlay() {
         plays.push(play);
     }
     
-    // 入力フィールドをクリア
     document.getElementById('playerNumber').value = '';
     currentPosition = '';
     currentShotCourse = '';
@@ -212,7 +204,6 @@ function updateScoresheet() {
     plays.forEach((play, index) => {
         const row = document.createElement('tr');
         
-        // 得点計算
         if (play.result === '1') {
             if (play.team === 'A') {
                 teamAScore++;
@@ -269,23 +260,20 @@ function updateScoresheet() {
     });
 }
 
-// プレー編集 - すべての項目を編集可能に
+// プレー編集
 function editPlay(index) {
     editingIndex = index;
     const play = plays[index];
     
-    // 編集フォームを表示
     document.getElementById('editForm').style.display = 'block';
     document.getElementById('editRowNum').textContent = index + 1;
     
-    // 時間設定（編集フォームの時間入力欄に設定）
     const editMinutes = Math.floor(play.time / 60);
     const editSeconds = play.time % 60;
     document.getElementById('editHalf').value = play.half;
     document.getElementById('editMinutes').value = editMinutes;
     document.getElementById('editSeconds').value = editSeconds;
     
-    // 時刻表示を更新（キャプチャ時刻表示エリアにも反映）
     capturedTimeValue = {
         time: play.time,
         half: play.half
@@ -293,22 +281,18 @@ function editPlay(index) {
     document.getElementById('capturedTime').textContent = 
         `[${play.half}] ${String(editMinutes).padStart(2, '0')}:${String(editSeconds).padStart(2, '0')}`;
     
-    // チーム選択を復元
     currentTeam = play.team;
     document.getElementById('teamABtn').classList.remove('selected');
     document.getElementById('teamBBtn').classList.remove('selected');
     document.getElementById(`team${play.team}Btn`).classList.add('selected');
     
-    // 背番号を復元
     document.getElementById('playerNumber').value = play.playerNumber;
     
-    // 現在の選択状態を保存
     currentPosition = play.position;
     currentShotCourse = play.shotCourse;
     currentResult = play.result;
     currentPhase = play.phase;
     
-    // すべてのボタンの選択状態をクリア
     document.querySelectorAll('.btn-grid').forEach(btn => {
         btn.classList.remove('selected');
     });
@@ -316,7 +300,6 @@ function editPlay(index) {
         btn.classList.remove('selected');
     });
     
-    // 展開ボタンの選択状態を復元
     if (play.phase) {
         document.querySelectorAll('.phase-buttons .btn-grid').forEach(btn => {
             const phaseMap = {
@@ -331,7 +314,6 @@ function editPlay(index) {
         });
     }
     
-    // 位置ボタンの選択状態を復元
     if (play.position) {
         document.querySelectorAll('.position-grid-extended .btn-grid').forEach(btn => {
             if (btn.textContent === play.position) {
@@ -340,7 +322,6 @@ function editPlay(index) {
         });
     }
     
-    // シュートコースボタンの選択状態を復元
     if (play.shotCourse) {
         document.querySelectorAll('.shot-course-grid .btn-grid').forEach(btn => {
             if (btn.textContent === play.shotCourse) {
@@ -349,7 +330,6 @@ function editPlay(index) {
         });
     }
     
-    // 結果ボタンの選択状態を復元
     if (play.result) {
         const resultMap = {
             '1': 'result1',
@@ -366,12 +346,10 @@ function editPlay(index) {
         }
     }
     
-    // ページの上部にスクロール（編集フォームが見えるように）
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function saveEdit() {
-    // 編集内容を保存（addPlay関数が編集モードを検知して処理）
     addPlay();
 }
 
@@ -395,7 +373,7 @@ function cancelEdit() {
 }
 
 function deletePlay() {
-    if (editingIndex !== null && confirm('このプレーを削除しますか？')) {
+    if (editingIndex !== null && confirm('このプレーを削除しますか?')) {
         plays.splice(editingIndex, 1);
         cancelEdit();
         updateScoresheet();
@@ -420,7 +398,7 @@ function showTab(tabName) {
     updateStats();
 }
 
-// 展開判定（phase優先、なければpositionから判定）
+// 展開判定
 function getPhase(play) {
     if (play.phase) return play.phase;
     
@@ -439,7 +417,7 @@ function updateStats() {
     updateShotCourseStats();
 }
 
-// 成功率統計（表形式）
+// 成功率統計
 function updateSuccessStats() {
     const stats = { A: {}, B: {} };
     
@@ -467,12 +445,10 @@ function updateSuccessStats() {
     ['A', 'B'].forEach(team => {
         const teamName = team === 'A' ? teamAName : teamBName;
         
-        // チーム名ヘッダー
         const headerRow = document.createElement('tr');
         headerRow.innerHTML = `<th colspan="6" style="background: #1976D2; font-size: 16px;">${teamName}</th>`;
         table.appendChild(headerRow);
         
-        // 列ヘッダー
         const colHeader = document.createElement('tr');
         colHeader.innerHTML = `
             <th>展開</th>
@@ -510,7 +486,7 @@ function updateSuccessStats() {
     });
 }
 
-// 試合中統計（表形式）
+// 試合中統計
 function updateMidgameStats() {
     const team = document.getElementById('midgameTeamSelect').value;
     const teamName = team === 'A' ? teamAName : teamBName;
@@ -576,8 +552,9 @@ function updateMidgameStats() {
         table.appendChild(row);
     });
 }
+// JavaScript 後半部分
 
-// プレーヤー別統計
+// プレーヤー別統計(修正版)
 function updatePlayerStats() {
     const team = document.getElementById('playerTeamSelect').value;
     const teamName = team === 'A' ? teamAName : teamBName;
@@ -595,11 +572,16 @@ function updatePlayerStats() {
         
         const pos = play.position || '不明';
         if (!playerData[num][phase][pos]) {
-            playerData[num][phase][pos] = { s: 0, t: 0 };
+            playerData[num][phase][pos] = { s: 0, f: 0, to: 0 };
         }
         
-        playerData[num][phase][pos].t++;
-        if (play.result === '1') playerData[num][phase][pos].s++;
+        if (play.result === '1') {
+            playerData[num][phase][pos].s++;
+        } else if (play.result === '0') {
+            playerData[num][phase][pos].f++;
+        } else if (play.result === 'TurnOver') {
+            playerData[num][phase][pos].to++;
+        }
     });
     
     const container = document.getElementById('playerStatsContainer');
@@ -624,7 +606,6 @@ function updatePlayerStats() {
         const table = document.createElement('table');
         table.className = 'stats-table';
         
-        // ヘッダー行
         let headerHTML = '<tr><th>展開</th>';
         positions.forEach(p => headerHTML += `<th>${p}</th>`);
         headerHTML += '<th>合計</th></tr>';
@@ -635,22 +616,41 @@ function updatePlayerStats() {
             const row = document.createElement('tr');
             let html = `<td class="label-col">${phaseLabels[phase] || phase}</td>`;
             
-            let phaseTotal = { s: 0, t: 0 };
+            let phaseTotal = { s: 0, f: 0, to: 0 };
             positions.forEach(pos => {
                 const data = playerData[num][phase][pos];
-                if (data && data.t > 0) {
-                    const rate = (data.s / data.t).toFixed(2);
-                    html += `<td>${data.s}/${data.t}<br>(${rate})</td>`;
+                if (data && (data.s > 0 || data.f > 0 || data.to > 0)) {
+                    const shootTotal = data.s + data.f;
+                    const rate = shootTotal > 0 ? (data.s / shootTotal).toFixed(2) : '-';
+                    if (data.to > 0) {
+                        html += `<td>${data.s}/${shootTotal} (${rate})<br>TO:${data.to}</td>`;
+                    } else {
+                        html += `<td>${data.s}/${shootTotal}<br>(${rate})</td>`;
+                    }
                     phaseTotal.s += data.s;
-                    phaseTotal.t += data.t;
+                    phaseTotal.f += data.f;
+                    phaseTotal.to += data.to;
                 } else {
                     html += `<td>-</td>`;
                 }
             });
             
-            if (phaseTotal.t > 0) {
-                const rate = (phaseTotal.s / phaseTotal.t).toFixed(2);
-                html += `<td><strong>${phaseTotal.s}/${phaseTotal.t}<br>(${rate})</strong></td>`;
+            // 位置不明のTurnOverも加算
+            const unknownData = playerData[num][phase]['不明'];
+            if (unknownData) {
+                phaseTotal.s += unknownData.s;
+                phaseTotal.f += unknownData.f;
+                phaseTotal.to += unknownData.to;
+            }
+            
+            const shootTotal = phaseTotal.s + phaseTotal.f;
+            if (shootTotal > 0 || phaseTotal.to > 0) {
+                const rate = shootTotal > 0 ? (phaseTotal.s / shootTotal).toFixed(2) : '-';
+                if (phaseTotal.to > 0) {
+                    html += `<td><strong>${phaseTotal.s}/${shootTotal} (${rate})<br>TO:${phaseTotal.to}</strong></td>`;
+                } else {
+                    html += `<td><strong>${phaseTotal.s}/${shootTotal}<br>(${rate})</strong></td>`;
+                }
             } else {
                 html += `<td>-</td>`;
             }
@@ -659,36 +659,57 @@ function updatePlayerStats() {
             table.appendChild(row);
         });
         
-        // 全体行
         const totalRow = document.createElement('tr');
         totalRow.style.fontWeight = 'bold';
         totalRow.style.background = '#f0f0f0';
         let totalHTML = '<td class="label-col">全体</td>';
-        let totalAll = { s: 0, t: 0 };
+        let totalAll = { s: 0, f: 0, to: 0 };
         
         positions.forEach(pos => {
-            let posTotal = { s: 0, t: 0 };
+            let posTotal = { s: 0, f: 0, to: 0 };
             phases.forEach(phase => {
                 const data = playerData[num][phase][pos];
                 if (data) {
                     posTotal.s += data.s;
-                    posTotal.t += data.t;
+                    posTotal.f += data.f;
+                    posTotal.to += data.to;
                 }
             });
             
-            if (posTotal.t > 0) {
-                const rate = (posTotal.s / posTotal.t).toFixed(2);
-                totalHTML += `<td>${posTotal.s}/${posTotal.t}<br>(${rate})</td>`;
+            const shootTotal = posTotal.s + posTotal.f;
+            if (shootTotal > 0 || posTotal.to > 0) {
+                const rate = shootTotal > 0 ? (posTotal.s / shootTotal).toFixed(2) : '-';
+                if (posTotal.to > 0) {
+                    totalHTML += `<td>${posTotal.s}/${shootTotal} (${rate})<br>TO:${posTotal.to}</td>`;
+                } else {
+                    totalHTML += `<td>${posTotal.s}/${shootTotal}<br>(${rate})</td>`;
+                }
                 totalAll.s += posTotal.s;
-                totalAll.t += posTotal.t;
+                totalAll.f += posTotal.f;
+                totalAll.to += posTotal.to;
             } else {
                 totalHTML += `<td>-</td>`;
             }
         });
         
-        if (totalAll.t > 0) {
-            const rate = (totalAll.s / totalAll.t).toFixed(2);
-            totalHTML += `<td><strong>${totalAll.s}/${totalAll.t}<br>(${rate})</strong></td>`;
+        // 位置不明のデータも全体に加算
+        phases.forEach(phase => {
+            const unknownData = playerData[num][phase]['不明'];
+            if (unknownData) {
+                totalAll.s += unknownData.s;
+                totalAll.f += unknownData.f;
+                totalAll.to += unknownData.to;
+            }
+        });
+        
+        const shootTotal = totalAll.s + totalAll.f;
+        if (shootTotal > 0 || totalAll.to > 0) {
+            const rate = shootTotal > 0 ? (totalAll.s / shootTotal).toFixed(2) : '-';
+            if (totalAll.to > 0) {
+                totalHTML += `<td><strong>${totalAll.s}/${shootTotal} (${rate})<br>TO:${totalAll.to}</strong></td>`;
+            } else {
+                totalHTML += `<td><strong>${totalAll.s}/${shootTotal}<br>(${rate})</strong></td>`;
+            }
         } else {
             totalHTML += `<td>-</td>`;
         }
@@ -701,14 +722,13 @@ function updatePlayerStats() {
     });
 }
 
-// シュートコース分析（表形式・画像のレイアウトに準拠）
+// シュートコース分析
 function updateShotCourseStats() {
     const team = document.getElementById('shotTeamSelect').value;
     const player = document.getElementById('shotPlayerSelect').value;
     const position = document.getElementById('shotPositionSelect').value;
     const phase = document.getElementById('shotPhaseSelect').value;
     
-    // チーム名取得
     let teamName = '';
     if (team === 'all') {
         teamName = '全体';
@@ -716,7 +736,6 @@ function updateShotCourseStats() {
         teamName = team === 'A' ? teamAName : teamBName;
     }
     
-    // データフィルタリング
     let filteredPlays = plays.filter(p => 
         p.shotCourse && 
         ['1', '0'].includes(p.result)
@@ -738,7 +757,6 @@ function updateShotCourseStats() {
         filteredPlays = filteredPlays.filter(p => getPhase(p) === phase);
     }
     
-    // コース別統計を計算
     const courseStats = {};
     filteredPlays.forEach(play => {
         if (!courseStats[play.shotCourse]) {
@@ -748,7 +766,6 @@ function updateShotCourseStats() {
         if (play.result === '1') courseStats[play.shotCourse].s++;
     });
     
-    // データを取得する関数
     function getCourseData(course) {
         if (courseStats[course] && courseStats[course].t > 0) {
             const rate = (courseStats[course].s / courseStats[course].t).toFixed(2);
@@ -757,7 +774,6 @@ function updateShotCourseStats() {
         return '-';
     }
     
-    // 合計計算
     let totalSuccess = 0;
     let totalAttempts = 0;
     Object.values(courseStats).forEach(cs => {
@@ -767,7 +783,6 @@ function updateShotCourseStats() {
     
     const container = document.getElementById('shotCourseAnalysis');
     
-    // ヘッダー情報
     let headerText = `${teamName}`;
     if (player !== 'all') headerText += ` / 背番号: ${player}`;
     if (position !== 'all') headerText += ` / 位置: ${position}`;
@@ -825,7 +840,6 @@ function updateShotCourseStats() {
         ` : '<div class="shot-total">データなし</div>'}
     `;
     
-    // 背番号選択肢を更新（チーム選択時）
     updatePlayerSelectOptions();
 }
 
@@ -837,7 +851,6 @@ function updatePlayerSelectOptions() {
     
     select.innerHTML = '<option value="all">全体</option>';
     
-    // チームが「全体」の場合は全プレーヤー、特定チームの場合はそのチームのプレーヤーのみ
     const playerSet = new Set();
     plays.forEach(play => {
         if (team === 'all' || play.team === team) {
@@ -860,7 +873,6 @@ function updatePlayerSelectOptions() {
         select.appendChild(opt);
     });
     
-    // 以前の選択を維持
     if (currentValue && Array.from(select.options).some(opt => opt.value === currentValue)) {
         select.value = currentValue;
     }
@@ -873,7 +885,6 @@ function exportData() {
     const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
     const timeStr = now.toTimeString().slice(0, 5).replace(/:/g, '');
     
-    // JSONデータ作成（teamはA/Bで保存）
     const exportData = {
         version: '1.0',
         exportDate: now.toISOString(),
@@ -883,28 +894,22 @@ function exportData() {
         plays: plays
     };
     
-    // JSON文字列に変換
     const jsonStr = JSON.stringify(exportData, null, 2);
-    
-    // Blobオブジェクトを作成
     const blob = new Blob([jsonStr], { type: 'application/json' });
-    
-    // ダウンロードリンクを作成
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `handball_${gameName}_${dateStr}_${timeStr}.json`;
     
-    // ダウンロード実行
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    alert('データを保存しました！');
+    alert('データを保存しました!');
 }
 
-// データインポート機能（追加モード対応）
+// データインポート機能
 function importData(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -915,39 +920,31 @@ function importData(event) {
         try {
             const data = JSON.parse(e.target.result);
             
-            // バージョンチェック
             if (!data.version) {
                 alert('無効なファイル形式です。');
                 return;
             }
             
-            // 既存データがある場合は追加モードを確認
             if (plays.length > 0) {
                 const addMode = confirm(
                     '既存のデータがあります。\n\n' +
-                    '【OK】= データを追加（既存データ + 新規データ）\n' +
-                    '【キャンセル】= データを置き換え（既存データを削除）\n\n' +
+                    '【OK】= データを追加(既存データ + 新規データ)\n' +
+                    '【キャンセル】= データを置き換え(既存データを削除)\n\n' +
                     `現在のプレー数: ${plays.length}\n` +
                     `読み込むプレー数: ${data.plays ? data.plays.length : 0}`
                 );
                 
                 if (addMode) {
-                    // 追加モード：データを追加
                     addImportedData(data);
                 } else {
-                    // 置き換えモード：データを置き換え
                     replaceImportedData(data);
                 }
             } else {
-                // 既存データがない場合は置き換え
                 replaceImportedData(data);
             }
             
-            // 画面を更新
             updateScoresheet();
             updateStats();
-            
-            // ファイル入力をリセット
             event.target.value = '';
             
         } catch (error) {
@@ -966,35 +963,27 @@ function importData(event) {
 // データ追加関数
 function addImportedData(data) {
     const importedPlays = data.plays || [];
-    
-    // 現在のHTMLに設定されているチーム名を取得
     const currentTeamAName = document.getElementById('teamAName').value || teamAName;
     const currentTeamBName = document.getElementById('teamBName').value || teamBName;
-    
-    // インポートデータのチーム名を取得
     const importTeamAName = data.teamAName || 'Aチーム';
     const importTeamBName = data.teamBName || 'Bチーム';
     
-    // チーム名のマッピング確認
     let teamMapping = { A: 'A', B: 'B' };
     
-    // チーム名が異なる場合、マッピングを確認
     if (importTeamAName !== currentTeamAName || importTeamBName !== currentTeamBName) {
         const mappingChoice = confirm(
             '読み込むデータのチーム名が現在の設定と異なります。\n\n' +
             `【現在の設定】\nAチーム: ${currentTeamAName}\nBチーム: ${currentTeamBName}\n\n` +
             `【読み込むデータ】\nAチーム: ${importTeamAName}\nBチーム: ${importTeamBName}\n\n` +
-            '【OK】= 現在の設定に合わせて追加（推奨）\n' +
+            '【OK】= 現在の設定に合わせて追加(推奨)\n' +
             '【キャンセル】= そのまま追加'
         );
         
         if (!mappingChoice) {
-            // そのまま追加（チーム名マッピングなし）
             teamMapping = { A: 'A', B: 'B' };
         }
     }
     
-    // データを追加（チーム識別子はA/Bのまま）
     importedPlays.forEach(play => {
         const newPlay = {
             ...play,
@@ -1003,11 +992,10 @@ function addImportedData(data) {
         plays.push(newPlay);
     });
     
-    // 時間順に並べ替え
     sortPlaysByTime();
     
     alert(
-        `データを追加しました！\n\n` +
+        `データを追加しました!\n\n` +
         `追加したプレー数: ${importedPlays.length}\n` +
         `合計プレー数: ${plays.length}\n\n` +
         `※時間順に並べ替えました`
@@ -1017,60 +1005,48 @@ function addImportedData(data) {
 // プレーを時間順に並べ替える関数
 function sortPlaysByTime() {
     plays.sort((a, b) => {
-        // 前半・後半の優先順位（前半=0、後半=1）
         const halfPriority = { '前半': 0, '後半': 1 };
         const halfA = halfPriority[a.half] || 0;
         const halfB = halfPriority[b.half] || 0;
         
-        // まず前半/後半で比較
         if (halfA !== halfB) {
             return halfA - halfB;
         }
         
-        // 同じ半なら時間で比較
         if (a.time !== b.time) {
             return a.time - b.time;
         }
         
-        // 時間も同じならタイムスタンプで比較（元の順序を保持）
         return (a.timestamp || 0) - (b.timestamp || 0);
     });
 }
 
 // データ置き換え関数
 function replaceImportedData(data) {
-    // 現在のHTMLに設定されているチーム名を使用
     const currentTeamAName = document.getElementById('teamAName').value;
     const currentTeamBName = document.getElementById('teamBName').value;
     
-    // チーム名が入力されている場合はそれを使用、なければインポートデータから
     if (currentTeamAName && currentTeamBName) {
-        // 現在の設定を維持
         teamAName = currentTeamAName;
         teamBName = currentTeamBName;
     } else {
-        // インポートデータのチーム名を使用
         teamAName = data.teamAName || 'Aチーム';
         teamBName = data.teamBName || 'Bチーム';
         
-        // チーム名をUIに反映
         document.getElementById('teamAName').value = teamAName;
         document.getElementById('teamBName').value = teamBName;
     }
     
-    // プレーデータを置き換え
     plays = data.plays || [];
     
-    // 試合名を復元
     if (data.gameName) {
         document.getElementById('gameName').value = data.gameName;
     }
     
-    // チーム名表示を更新
     updateTeamNames();
     
     alert(
-        `データを読み込みました！\n\n` +
+        `データを読み込みました!\n\n` +
         `試合: ${data.gameName || '無名'}\n` +
         `Aチーム: ${teamAName}\n` +
         `Bチーム: ${teamBName}\n` +
@@ -1083,5 +1059,4 @@ window.onload = function() {
     updateTeamNames();
     selectTeam('A');
     updateTimerDisplay();
-
 };
