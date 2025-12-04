@@ -139,8 +139,14 @@ function selectResult(result) {
     event.target.classList.add('selected');
 }
 
-// プレー追加
+// プレー追加(修正版)
 function addPlay() {
+    // チームが選択されているかチェック
+    if (!currentTeam) {
+        alert('チームを選択してください');
+        return;
+    }
+    
     if (editingIndex !== null) {
         const editMinutes = parseInt(document.getElementById('editMinutes').value) || 0;
         const editSeconds = parseInt(document.getElementById('editSeconds').value) || 0;
@@ -403,8 +409,8 @@ function showTab(tabName) {
 function getPhase(play) {
     if (play.phase) return play.phase;
     
-    // 位置が入力されていない場合は展開も不明とする
-    if (!play.position) return 'unknown';
+    // 位置が入力されていない場合は判定不可
+    if (!play.position) return '';
     
     const position = play.position;
     if (position === '7m') return '7m';
@@ -412,7 +418,6 @@ function getPhase(play) {
     if (['RW', 'LW'].includes(position)) return 'fast2';
     return 'set';
 }
-
 // 統計更新
 function updateStats() {
     updateSuccessStats();
@@ -561,7 +566,7 @@ function updateMidgameStats() {
 
 　// JavaScript 後半部分
 
-// プレーヤー別統計(修正版)
+// プレーヤー別統計(修正版 - TurnOver処理改善)
 function updatePlayerStats() {
     const team = document.getElementById('playerTeamSelect').value;
     const teamName = team === 'A' ? teamAName : teamBName;
@@ -572,12 +577,43 @@ function updatePlayerStats() {
         const num = play.playerNumber || '不明';
         if (!playerData[num]) playerData[num] = {};
         
-        const phase = getPhase(play);
+        // 展開と位置の判定
+        let phase = play.phase || '';
+        let pos = play.position || '';
+        
+        // TurnOverの場合の特別処理
+        if (play.result === 'TurnOver') {
+            // 展開が入力されている場合
+            if (phase) {
+                // 位置が入力されていない場合は「合計」列に追加
+                if (!pos) {
+                    pos = '_total_';
+                }
+            } else {
+                // 展開が入力されていない場合
+                if (!pos) {
+                    // 展開も位置も不明 → 全体の合計に追加
+                    phase = '_total_';
+                    pos = '_total_';
+                } else {
+                    // 位置だけ入力されている → 全体行の該当位置に追加
+                    phase = '_total_';
+                }
+            }
+        } else {
+            // TurnOver以外(得点・失敗)の場合
+            if (!phase) {
+                phase = pos ? getPhase(play) : '_total_';
+            }
+            if (!pos) {
+                pos = '_total_';
+            }
+        }
+        
         if (!playerData[num][phase]) {
             playerData[num][phase] = {};
         }
         
-        const pos = play.position || '不明';
         if (!playerData[num][phase][pos]) {
             playerData[num][phase][pos] = { s: 0, f: 0, to: 0 };
         }
@@ -595,7 +631,7 @@ function updatePlayerStats() {
     container.innerHTML = '';
     
     const positions = ['RW', 'nRB', 'mRB', 'lRB', 'nCB', 'mCB', 'lCB', 'nLB', 'mLB', 'lLB', 'LW', 'RPV', 'CPV', 'LPV', '7m'];
-    const phaseLabels = { set: 'セットオフェンス', fast1: '1次速攻', fast2: '2次速攻', '7m': '7m', unknown: '不明' };
+    const phaseLabels = { set: 'セットオフェンス', fast1: '1次速攻', fast2: '2次速攻', '7m': '7m' };
     
     Object.keys(playerData).sort((a, b) => {
         if (a === '不明') return 1;
@@ -618,8 +654,8 @@ function updatePlayerStats() {
         headerHTML += '<th>合計</th></tr>';
         table.innerHTML = headerHTML;
         
-        // 展開「unknown」以外を表示
-        const phases = Object.keys(playerData[num]).filter(p => p !== 'unknown');
+        // 通常の展開行を表示（_total_以外）
+        const phases = Object.keys(playerData[num]).filter(p => p !== '_total_');
         phases.forEach(phase => {
             const row = document.createElement('tr');
             let html = `<td class="label-col">${phaseLabels[phase] || phase}</td>`;
@@ -643,6 +679,14 @@ function updatePlayerStats() {
                 }
             });
             
+            // この展開の「合計」列（_total_も含む）
+            const totalColData = playerData[num][phase]['_total_'];
+            if (totalColData) {
+                phaseTotal.s += totalColData.s;
+                phaseTotal.f += totalColData.f;
+                phaseTotal.to += totalColData.to;
+            }
+            
             const shootTotal = phaseTotal.s + phaseTotal.f;
             if (shootTotal > 0 || phaseTotal.to > 0) {
                 const rate = shootTotal > 0 ? (phaseTotal.s / shootTotal).toFixed(2) : '-';
@@ -659,6 +703,7 @@ function updatePlayerStats() {
             table.appendChild(row);
         });
         
+        // 全体行
         const totalRow = document.createElement('tr');
         totalRow.style.fontWeight = 'bold';
         totalRow.style.background = '#f0f0f0';
@@ -667,6 +712,8 @@ function updatePlayerStats() {
         
         positions.forEach(pos => {
             let posTotal = { s: 0, f: 0, to: 0 };
+            
+            // 各展開の該当位置を集計
             phases.forEach(phase => {
                 const data = playerData[num][phase][pos];
                 if (data) {
@@ -675,6 +722,14 @@ function updatePlayerStats() {
                     posTotal.to += data.to;
                 }
             });
+            
+            // 全体行の該当位置（_total_展開）も加算
+            if (playerData[num]['_total_'] && playerData[num]['_total_'][pos]) {
+                const totalPhaseData = playerData[num]['_total_'][pos];
+                posTotal.s += totalPhaseData.s;
+                posTotal.f += totalPhaseData.f;
+                posTotal.to += totalPhaseData.to;
+            }
             
             const shootTotal = posTotal.s + posTotal.f;
             if (shootTotal > 0 || posTotal.to > 0) {
@@ -692,17 +747,21 @@ function updatePlayerStats() {
             }
         });
         
-        // 展開「unknown」のデータを全体に加算(合計列にのみ反映)
-        if (playerData[num]['unknown']) {
-            const unknownPhaseData = playerData[num]['unknown'];
-            Object.keys(unknownPhaseData).forEach(pos => {
-                const data = unknownPhaseData[pos];
-                if (data) {
-                    totalAll.s += data.s;
-                    totalAll.f += data.f;
-                    totalAll.to += data.to;
-                }
-            });
+        // 全体の合計列（各展開の_total_と、_total_展開の_total_を集計）
+        phases.forEach(phase => {
+            if (playerData[num][phase]['_total_']) {
+                const data = playerData[num][phase]['_total_'];
+                totalAll.s += data.s;
+                totalAll.f += data.f;
+                totalAll.to += data.to;
+            }
+        });
+        
+        if (playerData[num]['_total_'] && playerData[num]['_total_']['_total_']) {
+            const data = playerData[num]['_total_']['_total_'];
+            totalAll.s += data.s;
+            totalAll.f += data.f;
+            totalAll.to += data.to;
         }
         
         const shootTotal = totalAll.s + totalAll.f;
@@ -724,7 +783,6 @@ function updatePlayerStats() {
         container.appendChild(playerDiv);
     });
 }
-
 // シュートコース分析
 function updateShotCourseStats() {
     const team = document.getElementById('shotTeamSelect').value;
@@ -1063,6 +1121,7 @@ window.onload = function() {
     selectTeam('A');
     updateTimerDisplay();
 };　
+
 
 
 
