@@ -1,3 +1,4 @@
+
 // ハンドボール試合分析ツール - JavaScript (前半)
 
 let plays = [];
@@ -81,18 +82,20 @@ function selectTeam(team) {
     document.getElementById(`team${team}Btn`).classList.add('selected');
 }
 
-// 展開判定(修正版)
-function getPhase(play) {
-    if (play.phase) return play.phase;
-    
-    // 位置が入力されていない場合は展開も不明とする
-    if (!play.position) return 'unknown';
-    
-    const position = play.position;
-    if (position === '7m') return '7m';
-    if (['RPV', 'CPV', 'LPV'].includes(position)) return 'fast1';
-    if (['RW', 'LW'].includes(position)) return 'fast2';
-    return 'set';
+// 展開選択
+function selectPhase(phase) {
+    if (currentPhase === phase) {
+        currentPhase = '';
+        document.querySelectorAll('.phase-buttons .btn-grid').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+    } else {
+        currentPhase = phase;
+        document.querySelectorAll('.phase-buttons .btn-grid').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+        event.target.classList.add('selected');
+    }
 }
 
 // 位置選択
@@ -401,7 +404,7 @@ function getPhase(play) {
     if (play.phase) return play.phase;
     
     // 位置が入力されていない場合は展開も不明とする
-    if (!play.position) return '不明';
+    if (!play.position) return 'unknown';
     
     const position = play.position;
     if (position === '7m') return '7m';
@@ -434,9 +437,11 @@ function updateSuccessStats() {
     plays.forEach(play => {
         if (['1', '0', 'TurnOver'].includes(play.result)) {
             const phase = getPhase(play);
-            if (play.result === '1') stats[play.team][phase].success++;
-            else if (play.result === '0') stats[play.team][phase].fail++;
-            else if (play.result === 'TurnOver') stats[play.team][phase].turnover++;
+            if (phase !== 'unknown') {
+                if (play.result === '1') stats[play.team][phase].success++;
+                else if (play.result === '0') stats[play.team][phase].fail++;
+                else if (play.result === 'TurnOver') stats[play.team][phase].turnover++;
+            }
         }
     });
     
@@ -553,7 +558,8 @@ function updateMidgameStats() {
         table.appendChild(row);
     });
 }
-// JavaScript 後半部分
+
+　// JavaScript 後半部分
 
 // プレーヤー別統計(修正版)
 function updatePlayerStats() {
@@ -718,8 +724,6 @@ function updatePlayerStats() {
         container.appendChild(playerDiv);
     });
 }
-
-                
 
 // シュートコース分析
 function updateShotCourseStats() {
@@ -1058,7 +1062,10 @@ window.onload = function() {
     updateTeamNames();
     selectTeam('A');
     updateTimerDisplay();
-};
+};　
+
+
+
 
 
 
