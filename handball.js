@@ -398,9 +398,12 @@ function showTab(tabName) {
     updateStats();
 }
 
-// 展開判定
+// 展開判定(修正版)
 function getPhase(play) {
     if (play.phase) return play.phase;
+    
+    // 位置が入力されていない場合は展開も不明とする
+    if (!play.position) return '不明';
     
     const position = play.position;
     if (position === '7m') return '7m';
@@ -588,7 +591,7 @@ function updatePlayerStats() {
     container.innerHTML = '';
     
     const positions = ['RW', 'nRB', 'mRB', 'lRB', 'nCB', 'mCB', 'lCB', 'nLB', 'mLB', 'lLB', 'LW', 'RPV', 'CPV', 'LPV', '7m'];
-    const phaseLabels = { set: 'セットオフェンス', fast1: '1次速攻', fast2: '2次速攻', '7m': '7m', unknown: '不明' };
+    const phaseLabels = { set: 'セットオフェンス', fast1: '1次速攻', fast2: '2次速攻', '7m': '7m', '不明': '不明' };
     
     Object.keys(playerData).sort((a, b) => {
         if (a === '不明') return 1;
@@ -611,8 +614,8 @@ function updatePlayerStats() {
         headerHTML += '<th>合計</th></tr>';
         table.innerHTML = headerHTML;
         
-        // 展開「unknown」以外を表示
-        const phases = Object.keys(playerData[num]).filter(p => p !== 'unknown');
+        // 展開「不明」以外を表示
+        const phases = Object.keys(playerData[num]).filter(p => p !== '不明');
         phases.forEach(phase => {
             const row = document.createElement('tr');
             let html = `<td class="label-col">${phaseLabels[phase] || phase}</td>`;
@@ -685,9 +688,9 @@ function updatePlayerStats() {
             }
         });
         
-        // 展開「unknown」のデータを全体に加算(合計列にのみ反映)
-        if (playerData[num]['unknown']) {
-            const unknownPhaseData = playerData[num]['unknown'];
+        // 展開「不明」のデータを全体に加算(合計列にのみ反映)
+        if (playerData[num]['不明']) {
+            const unknownPhaseData = playerData[num]['不明'];
             Object.keys(unknownPhaseData).forEach(pos => {
                 const data = unknownPhaseData[pos];
                 if (data) {
@@ -1058,4 +1061,5 @@ window.onload = function() {
     selectTeam('A');
     updateTimerDisplay();
 };
+
 
