@@ -139,7 +139,7 @@ function selectResult(result) {
     event.target.classList.add('selected');
 }
 
-// プレー追加(修正版)
+// プレー追加(修正版 - チーム選択をリセット)
 function addPlay() {
     // チームが選択されているかチェック
     if (!currentTeam) {
@@ -183,11 +183,17 @@ function addPlay() {
         plays.push(play);
     }
     
+    // 入力フィールドとチーム選択をクリア
     document.getElementById('playerNumber').value = '';
     currentPosition = '';
     currentShotCourse = '';
     currentResult = '';
     currentPhase = '';
+    currentTeam = ''; // チーム選択をクリア
+    
+    // チーム選択ボタンの選択状態を解除
+    document.getElementById('teamABtn').classList.remove('selected');
+    document.getElementById('teamBBtn').classList.remove('selected');
     
     document.querySelectorAll('.btn-grid.selected').forEach(btn => {
         btn.classList.remove('selected');
@@ -199,7 +205,6 @@ function addPlay() {
     updateScoresheet();
     updateStats();
 }
-
 // スコアシート更新
 function updateScoresheet() {
     const tbody = document.getElementById('scoresheetBody');
@@ -387,6 +392,30 @@ function deletePlay() {
         updateStats();
     }
 }
+// キャンセル編集(修正版 - チーム選択もクリア)
+function cancelEdit() {
+    editingIndex = null;
+    document.getElementById('editForm').style.display = 'none';
+    document.getElementById('playerNumber').value = '';
+    currentPosition = '';
+    currentShotCourse = '';
+    currentResult = '';
+    currentPhase = '';
+    currentTeam = ''; // チーム選択をクリア
+    capturedTimeValue = null;
+    document.getElementById('capturedTime').textContent = '--:--';
+    
+    // チーム選択ボタンの選択状態を解除
+    document.getElementById('teamABtn').classList.remove('selected');
+    document.getElementById('teamBBtn').classList.remove('selected');
+    
+    document.querySelectorAll('.btn-grid.selected').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    document.querySelectorAll('.result-buttons button').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+}
 
 // タブ切り替え
 function showTab(tabName) {
@@ -566,7 +595,7 @@ function updateMidgameStats() {
 
 　// JavaScript 後半部分
 
-// プレーヤー別統計(修正版 - TurnOver処理改善)
+// プレーヤー別統計(修正版 - 展開指定なし+位置あり処理改善)
 function updatePlayerStats() {
     const team = document.getElementById('playerTeamSelect').value;
     const teamName = team === 'A' ? teamAName : teamBName;
@@ -581,34 +610,19 @@ function updatePlayerStats() {
         let phase = play.phase || '';
         let pos = play.position || '';
         
-        // TurnOverの場合の特別処理
-        if (play.result === 'TurnOver') {
-            // 展開が入力されている場合
-            if (phase) {
-                // 位置が入力されていない場合は「合計」列に追加
-                if (!pos) {
-                    pos = '_total_';
-                }
-            } else {
-                // 展開が入力されていない場合
-                if (!pos) {
-                    // 展開も位置も不明 → 全体の合計に追加
-                    phase = '_total_';
-                    pos = '_total_';
-                } else {
-                    // 位置だけ入力されている → 全体行の該当位置に追加
-                    phase = '_total_';
-                }
-            }
-        } else {
-            // TurnOver以外(得点・失敗)の場合
-            if (!phase) {
-                phase = pos ? getPhase(play) : '_total_';
-            }
-            if (!pos) {
-                pos = '_total_';
-            }
+        // 展開と位置の組み合わせによる処理
+        if (!phase && !pos) {
+            // 展開不明、位置不明 → 全体行の合計列
+            phase = '_total_';
+            pos = '_total_';
+        } else if (!phase && pos) {
+            // 展開不明、位置あり → 全体行の該当位置列
+            phase = '_total_';
+        } else if (phase && !pos) {
+            // 展開あり、位置不明 → 該当展開行の合計列
+            pos = '_total_';
         }
+        // phase && pos の場合はそのまま使用
         
         if (!playerData[num][phase]) {
             playerData[num][phase] = {};
@@ -661,6 +675,8 @@ function updatePlayerStats() {
             let html = `<td class="label-col">${phaseLabels[phase] || phase}</td>`;
             
             let phaseTotal = { s: 0, f: 0, to: 0 };
+            
+            // 各位置のデータを表示
             positions.forEach(pos => {
                 const data = playerData[num][phase][pos];
                 if (data && (data.s > 0 || data.f > 0 || data.to > 0)) {
@@ -679,7 +695,7 @@ function updatePlayerStats() {
                 }
             });
             
-            // この展開の「合計」列（_total_も含む）
+            // この展開の「合計」列（展開あり、位置不明のデータ）
             const totalColData = playerData[num][phase]['_total_'];
             if (totalColData) {
                 phaseTotal.s += totalColData.s;
@@ -710,6 +726,7 @@ function updatePlayerStats() {
         let totalHTML = '<td class="label-col">全体</td>';
         let totalAll = { s: 0, f: 0, to: 0 };
         
+        // 各位置の全体集計
         positions.forEach(pos => {
             let posTotal = { s: 0, f: 0, to: 0 };
             
@@ -723,7 +740,7 @@ function updatePlayerStats() {
                 }
             });
             
-            // 全体行の該当位置（_total_展開）も加算
+            // 全体行の該当位置（展開不明、位置ありのデータ）も加算
             if (playerData[num]['_total_'] && playerData[num]['_total_'][pos]) {
                 const totalPhaseData = playerData[num]['_total_'][pos];
                 posTotal.s += totalPhaseData.s;
@@ -747,7 +764,7 @@ function updatePlayerStats() {
             }
         });
         
-        // 全体の合計列（各展開の_total_と、_total_展開の_total_を集計）
+        // 全体の合計列（各展開の合計列 + 全体行の合計列）
         phases.forEach(phase => {
             if (playerData[num][phase]['_total_']) {
                 const data = playerData[num][phase]['_total_'];
@@ -757,6 +774,7 @@ function updatePlayerStats() {
             }
         });
         
+        // 展開不明、位置不明のデータ
         if (playerData[num]['_total_'] && playerData[num]['_total_']['_total_']) {
             const data = playerData[num]['_total_']['_total_'];
             totalAll.s += data.s;
@@ -1121,6 +1139,7 @@ window.onload = function() {
     selectTeam('A');
     updateTimerDisplay();
 };　
+
 
 
 
