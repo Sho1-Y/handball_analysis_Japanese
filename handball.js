@@ -1,5 +1,4 @@
-
-// ハンドボール試合分析ツール - JavaScript (前半)
+// ハンドボール試合分析ツール - JavaScript (完全版・前半)
 
 let plays = [];
 let timer = 0;
@@ -7,7 +6,7 @@ let isRunning = false;
 let timerInterval = null;
 let teamAName = 'Rakusei';
 let teamBName = 'Ryoyo';
-let currentTeam = 'A';
+let currentTeam = '';
 let currentHalf = '前半';
 let currentPosition = '';
 let currentShotCourse = '';
@@ -205,6 +204,7 @@ function addPlay() {
     updateScoresheet();
     updateStats();
 }
+
 // スコアシート更新
 function updateScoresheet() {
     const tbody = document.getElementById('scoresheetBody');
@@ -365,33 +365,6 @@ function saveEdit() {
     addPlay();
 }
 
-function cancelEdit() {
-    editingIndex = null;
-    document.getElementById('editForm').style.display = 'none';
-    document.getElementById('playerNumber').value = '';
-    currentPosition = '';
-    currentShotCourse = '';
-    currentResult = '';
-    currentPhase = '';
-    capturedTimeValue = null;
-    document.getElementById('capturedTime').textContent = '--:--';
-    
-    document.querySelectorAll('.btn-grid.selected').forEach(btn => {
-        btn.classList.remove('selected');
-    });
-    document.querySelectorAll('.result-buttons button').forEach(btn => {
-        btn.classList.remove('selected');
-    });
-}
-
-function deletePlay() {
-    if (editingIndex !== null && confirm('このプレーを削除しますか?')) {
-        plays.splice(editingIndex, 1);
-        cancelEdit();
-        updateScoresheet();
-        updateStats();
-    }
-}
 // キャンセル編集(修正版 - チーム選択もクリア)
 function cancelEdit() {
     editingIndex = null;
@@ -415,6 +388,15 @@ function cancelEdit() {
     document.querySelectorAll('.result-buttons button').forEach(btn => {
         btn.classList.remove('selected');
     });
+}
+
+function deletePlay() {
+    if (editingIndex !== null && confirm('このプレーを削除しますか?')) {
+        plays.splice(editingIndex, 1);
+        cancelEdit();
+        updateScoresheet();
+        updateStats();
+    }
 }
 
 // タブ切り替え
@@ -447,6 +429,7 @@ function getPhase(play) {
     if (['RW', 'LW'].includes(position)) return 'fast2';
     return 'set';
 }
+
 // 統計更新
 function updateStats() {
     updateSuccessStats();
@@ -470,8 +453,8 @@ function updateSuccessStats() {
     
     plays.forEach(play => {
         if (['1', '0', 'TurnOver'].includes(play.result)) {
-            const phase = getPhase(play);
-            if (phase !== 'unknown') {
+            const phase = play.phase || (play.position ? getPhase(play) : '');
+            if (phase && phase !== '') {
                 if (play.result === '1') stats[play.team][phase].success++;
                 else if (play.result === '0') stats[play.team][phase].fail++;
                 else if (play.result === 'TurnOver') stats[play.team][phase].turnover++;
@@ -592,8 +575,7 @@ function updateMidgameStats() {
         table.appendChild(row);
     });
 }
-
-　// JavaScript 後半部分
+// JavaScript 後半部分
 
 // プレーヤー別統計(修正版 - 展開指定なし+位置あり処理改善)
 function updatePlayerStats() {
@@ -801,6 +783,7 @@ function updatePlayerStats() {
         container.appendChild(playerDiv);
     });
 }
+
 // シュートコース分析
 function updateShotCourseStats() {
     const team = document.getElementById('shotTeamSelect').value;
@@ -833,7 +816,10 @@ function updateShotCourseStats() {
     }
     
     if (phase !== 'all') {
-        filteredPlays = filteredPlays.filter(p => getPhase(p) === phase);
+        filteredPlays = filteredPlays.filter(p => {
+            const playPhase = play.phase || (play.position ? getPhase(play) : '');
+            return playPhase === phase;
+        });
     }
     
     const courseStats = {};
@@ -1136,14 +1122,5 @@ function replaceImportedData(data) {
 // 初期化
 window.onload = function() {
     updateTeamNames();
-    selectTeam('A');
     updateTimerDisplay();
-};　
-
-
-
-
-
-
-
-
+};
